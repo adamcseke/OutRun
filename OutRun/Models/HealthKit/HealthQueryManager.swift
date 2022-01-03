@@ -58,12 +58,12 @@ enum HealthQueryManager {
                         safeCompletion(false, [])
                         return
                     }
-                    
+
                     DispatchQueue.main.async {
-                        
+
                         var queryObjects = [HKWorkoutQueryObject]()
                         var count = 0
-                        
+
                         func completeIfAppropriate() {
                             if count == samples.count {
                                 safeCompletion(true, queryObjects)
@@ -79,16 +79,13 @@ enum HealthQueryManager {
                             queryObjects.append(queryObject)
                             HealthQueryManager.getAndAttatchRoute(to: queryObject) {
                                 HealthQueryManager.getAndAttatchSteps(to: queryObject) {
-                                    // not fully implemented
-                                    //HealthQueryManager.getAndAttachHeartRate(to: queryObject) {
                                         count += 1
                                         completeIfAppropriate()
-                                    //}
                                 }
                             }
                         }
                     }
-                    
+
                 })
                 HealthStoreManager.healthStore.execute(query)
                 
@@ -103,7 +100,7 @@ enum HealthQueryManager {
     
     // MARK: Query Steps and Attatch to Query Object
     static func getAndAttatchSteps(to queryObject: HKWorkoutQueryObject, completion: @escaping () -> Void) {
-        
+
         let predicate = HKAnchoredObjectQuery.predicateForObjects(from: queryObject.hkWorkout)
         let stepsQuery = HKAnchoredObjectQuery(type: HealthStoreManager.objectTypeRouteType, predicate: predicate, anchor: nil, limit: HKObjectQueryNoLimit) { (query, stepsSamples, _, _, error) in
             
@@ -118,6 +115,7 @@ enum HealthQueryManager {
             }
             
             queryObject.steps = steps != 0 ? steps : nil
+            completion()
         }
         
         HealthStoreManager.healthStore.execute(stepsQuery)
@@ -126,7 +124,7 @@ enum HealthQueryManager {
     
     // MARK: Query Route and Attatch to Query Object
     static func getAndAttatchRoute(to queryObject: HKWorkoutQueryObject, completion: @escaping () -> Void) {
-        
+
         let predicate = HKAnchoredObjectQuery.predicateForObjects(from: queryObject.hkWorkout)
         let routeObjectQuery = HKAnchoredObjectQuery(type: HealthStoreManager.objectTypeRouteType, predicate: predicate, anchor: nil, limit: 1) { (query, routeSamples, _, _, error) in
             
@@ -154,15 +152,14 @@ enum HealthQueryManager {
         
         HealthStoreManager.healthStore.execute(routeObjectQuery)
     }
-    
-    // MARK: Query Heart Rates and Attach to Query Object
-    static func getAndAttachHeartRate(to queryObject: HKWorkoutQueryObject, completion: @escaping () -> Void) {
-        
-        let predicate = HKAnchoredObjectQuery.predicateForObjects(from: queryObject.hkWorkout)
+
+    // MARK: Query Heart Rates from timestamps
+    static func getHeartRateSamples(startDate:Date, endDate:Date, completion: @escaping (_: [TempWorkoutHeartRateDataSample])->Void) {
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictEndDate)
         let heartRateQuery = HKAnchoredObjectQuery(type: HealthStoreManager.objectTypeHeartRate, predicate: predicate, anchor: nil, limit: HKObjectQueryNoLimit) { (query, heartRateSamples, _, _, error) in
-            
             guard let heartRateSamples = heartRateSamples, !heartRateSamples.isEmpty else {
-                completion()
+                completion([])
                 return
             }
             
@@ -175,8 +172,8 @@ enum HealthQueryManager {
                 
                 func checkIfDone(_ done: Bool) {
                     if done {
-                        queryObject.heartRates = tempSamples
-                        completion()
+                        
+                        completion(tempSamples)
                     }
                 }
                 
@@ -217,15 +214,14 @@ enum HealthQueryManager {
                     tempSamples.append(tempSample)
                     
                     if (index + 1) == samples.count {
-                        queryObject.heartRates = tempSamples
-                        completion()
+                        
+                        completion(tempSamples)
                     }
                 }
             }
         }
         
         HealthStoreManager.healthStore.execute(heartRateQuery)
-        
     }
     
     // MARK: Query Most Recent Weight And Save To UserPreferences

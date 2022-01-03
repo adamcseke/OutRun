@@ -132,6 +132,8 @@
 "WorkoutStats.BurnedEnergy" = "Verbrannte Energie";
 "WorkoutStats.TotalEnergy" = "Gesamtenergie";
 "WorkoutStats.Route" = "Strecke";
+"WorkoutStats.AvarageHeartRate" = "Durchschnitt HR";
+"WorkoutStats.maxHeartRate" = "Max HR";
 "WorkoutDeletion.Title" = "Workout löschen?";
 "WorkoutDeletion.Message" = "Willst du das Workout wirklich löschen? Es ist nicht wiederherstellbar nachdem du es gelöscht hast.";
 "WorkoutDeletion.AppleHealth.Title" = "In Apple Health löschen?";

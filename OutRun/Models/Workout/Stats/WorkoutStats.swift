@@ -31,7 +31,6 @@ class WorkoutStats {
     
     let hasWorkoutEvents: Bool
     let hasRouteSamples: Bool
-    let hasHeartRateData: Bool
     let hasEnergyValue: Bool
     
     // DISTANCE
@@ -39,10 +38,6 @@ class WorkoutStats {
     let steps: NSMeasurement?
     let ascendingAltitude: NSMeasurement?
     let descendingAltitude: NSMeasurement?
-    
-    // HEART RATE
-    let avarageHeartRate: NSMeasurement?
-    let maxHeartRate: NSMeasurement?
     
     // DURATION
     let startDate: Date
@@ -79,7 +74,6 @@ class WorkoutStats {
         
         self.hasWorkoutEvents = !workout.workoutEvents.isEmpty
         self.hasRouteSamples = !workout.routeData.isEmpty
-        self.hasHeartRateData = !workout.heartRates.isEmpty
         self.hasEnergyValue = workout.burnedEnergy.value != nil
         
         self.distance = NSMeasurement(doubleValue: workout.distance.value, unit: UnitLength.meters)
@@ -93,9 +87,6 @@ class WorkoutStats {
         self.averageSpeed = NSMeasurement(doubleValue: activeDuration.doubleValue != 0 ? (distance.doubleValue / activeDuration.doubleValue) : 0, unit: UnitSpeed.metersPerSecond)
         
         self.burnedEnergy = hasEnergyValue ? NSMeasurement(doubleValue: workout.burnedEnergy.value ?? 0, unit: UnitEnergy.kilocalories) : nil
-        
-        self.avarageHeartRate = hasHeartRateData ? NSMeasurement(doubleValue: Double(workout.hasHeartRateData.description)!, unit: UnitCount.count) : nil
-        self.maxHeartRate = hasHeartRateData ? NSMeasurement(doubleValue: Double(workout.hasHeartRateData.description)!, unit: UnitCount.count) : nil
         
         if hasRouteSamples {
             
@@ -163,30 +154,6 @@ class WorkoutStats {
                 },
                 completion: { (success, series) in
                     self.lastQueriedSpeedSeries = (success, series)
-                    completion(success, series)
-                }
-            )
-        }
-    }
-    
-    var lastQueriedHeartRateSeries: (Bool, WorkoutStatsSeries?)?
-    func queryHeartRates(completion: @escaping (Bool, WorkoutStatsSeries?) -> Void) {
-        DispatchQueue.main.async {
-            if let last = self.lastQueriedHeartRateSeries {
-                completion(last.0, last.1)
-                return
-            }
-            DataQueryManager.queryStatsSeries(
-                for: self.workout,
-                sampleType: WorkoutHeartRateDataSample.self,
-                dataPoint: { (workout, routeSample) -> (time: TimeInterval, value: Double, unit: Unit) in
-                    let time = workout.startDate.value.distance(to: routeSample.timestamp.value)
-                    let value = routeSample.heartRate.value
-                    let unit = UnitCount.count
-                    return (time: time, value: value, unit: unit)
-                },
-                completion: { (success, series) in
-                    self.lastQueriedHeartRateSeries = (success, series)
                     completion(success, series)
                 }
             )

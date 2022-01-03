@@ -54,7 +54,9 @@ class WorkoutBuilder: ApplicationStateObserver {
     public private(set) var manualPauseEvents: [TempWorkoutEvent] = []
     /// a boolean indicating whether background updates should be performed
     public private(set) var shouldPerformBackgroundUpdates: Bool = true
-    
+    /// An array of TempWorkoutHeartRateDataSample containing Heart Rate samples during the start and end dates
+    public private(set) var heartRateSamples: [TempWorkoutHeartRateDataSample] = []
+
     // MARK: Actions
     
     /**
@@ -126,41 +128,35 @@ class WorkoutBuilder: ApplicationStateObserver {
         
         let completion = makeClosureThreadSafe(completion)
         let timestamp = Date()
-        
-        validateTransition(to: .ready) { (success) in
-            
-            if success {
-                
-                self.endDate = timestamp
-                
-                if let snapshot = self.createSnapshot() {
-                    
-                    let handler = WorkoutCompletionActionHandler(snapshot: snapshot, builder: self)
-                    
-                    if shouldProvideCompletionActions {
-                        handler.display()
-                    } else {
-                        handler.saveWorkout()
-                    }
-                    
-                    completion(true)
-                    
-                } else {
-                    
-                    completion(false)
-                    
-                }
-                
-                self.reset()
-                
-            } else {
-                
+
+        self.validateTransition(to: .ready) { (success) in
+            guard success
+            else {
                 completion(false)
-                
+                return
             }
-            
+
+            self.endDate = timestamp
+            DispatchQueue.main.async {
+                guard let snapshot = self.createSnapshot()
+                else {
+                    completion(false)
+                    return
+                }
+
+                let handler = WorkoutCompletionActionHandler(snapshot: snapshot, builder: self)
+
+                if shouldProvideCompletionActions {
+                    handler.display()
+                } else {
+                    handler.saveWorkout()
+                }
+
+                completion(true)
+
+                self.reset()
+            }
         }
-        
     }
     
     /**
@@ -324,7 +320,7 @@ class WorkoutBuilder: ApplicationStateObserver {
             healthKitUUID: nil,
             workoutEvents: events,
             locations: routeData,
-            heartRates: []
+            heartRates: self.heartRateSamples
         )
         
     }

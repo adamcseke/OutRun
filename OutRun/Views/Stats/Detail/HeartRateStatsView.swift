@@ -1,5 +1,5 @@
 //
-//  [FILENAME]
+//  HeartRateStatsView.swift
 //
 //  OutRun
 //  Copyright (C) 2020 Tim Fraedrich <timfraedrich@icloud.com>
@@ -19,30 +19,53 @@
 //
 
 import UIKit
-import Charts
+import HealthKit
 
 class HeartRateStatsView: StatsView {
+
+    let avarageHeartRateView = LabelledDataView(title: LS["WorkoutStats.AvarageHeartRate"], measurement: nil)
+    let maxHeartRateView = LabelledDataView(title: LS["WorkoutStats.maxHeartRate"], measurement: nil)
+    let startDate: Date
+    let endDate: Date
     
     init(stats: WorkoutStats) {
-        
+        self.startDate = stats.startDate
+        self.endDate = stats.endDate
+
         var statViews = [StatView]()
-        
-        let avarageHeartRateView = LabelledDataView(title: LS["WorkoutStats.AvarageHeartRate"], measurement: stats.avarageHeartRate)
-        let maxHeartRateView = LabelledDataView(title: LS["WorkoutStats.maxHeartRate"], measurement: stats.maxHeartRate)
-        
-        if stats.distance.doubleValue == 0 {
-            statViews.append(contentsOf: [avarageHeartRateView, maxHeartRateView])
-        } else {
-            statViews.append(contentsOf: [avarageHeartRateView, maxHeartRateView])
-        }
+        statViews.append(contentsOf: [avarageHeartRateView, maxHeartRateView])
         
         super.init(title: "Heart Rate", statViews: statViews)
         
         self.backgroundColor = .backgroundColor
+        self.isHidden = true
+        self.loadHeartRateData(stats:stats)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
+    private func loadHeartRateData(stats: WorkoutStats) {
+        HealthQueryManager.getHeartRateSamples(startDate: self.startDate, endDate: self.endDate) { [weak self] samples in
+            DispatchQueue.main.async {
+                let hasHeartRateData = !samples.isEmpty
+                let heartRates = samples.map { sample in
+                    sample.heartRate
+                }
+                let maxHR = heartRates.max()
+                let sumHR = heartRates.reduce(0.0, +)
+                let hrCount = heartRates.count
+                let avgHR = (sumHR / Double(hrCount)).rounded()
+
+                self?.maxHeartRateView.value = NSMeasurement(doubleValue: maxHR ?? 0.0, unit: Unit.init(symbol: "BPM"))
+                self?.avarageHeartRateView.value = NSMeasurement(doubleValue: avgHR ?? 0.0, unit: Unit.init(symbol: "BPM"))
+
+                if hasHeartRateData {
+                    self?.isHidden = false
+                }
+            }
+
+        }
+    }
 }

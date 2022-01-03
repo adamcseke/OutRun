@@ -147,14 +147,6 @@ struct DataManager {
                 sample.workout .= workout
             }
             
-            for heartRate in heartRates {
-                let sample = transaction.create(Into<WorkoutHeartRateDataSample>())
-                sample.uuid .= heartRate.uuid ?? UUID()
-                sample.heartRate .= heartRate.heartRate
-                sample.timestamp .= heartRate.timestamp
-                sample.workout .= workout
-            }
-            
             return workout
             
         }) { (result) in
@@ -229,13 +221,6 @@ struct DataManager {
                     sample.speed .= location.speed
                     sample.direction .= location.direction
                     sample.workout .= workout
-                }
-                
-                for heartRate in object.heartRates {
-                    let sample = transaction.create(Into<WorkoutHeartRateDataSample>())
-                    sample.uuid .= heartRate.uuid ?? UUID()
-                    sample.heartRate .= heartRate.heartRate
-                    sample.timestamp .= heartRate.timestamp
                 }
                 
                 tempWorkouts.append(workout)
