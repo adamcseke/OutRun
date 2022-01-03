@@ -40,6 +40,10 @@ class WorkoutStats {
     let ascendingAltitude: NSMeasurement?
     let descendingAltitude: NSMeasurement?
     
+    // HEART RATE
+    let avarageHeartRate: NSMeasurement?
+    let maxHeartRate: NSMeasurement?
+    
     // DURATION
     let startDate: Date
     let endDate: Date
@@ -90,6 +94,9 @@ class WorkoutStats {
         
         self.burnedEnergy = hasEnergyValue ? NSMeasurement(doubleValue: workout.burnedEnergy.value ?? 0, unit: UnitEnergy.kilocalories) : nil
         
+        self.avarageHeartRate = hasHeartRateData ? NSMeasurement(doubleValue: Double(workout.hasHeartRateData.description)!, unit: UnitCount.count) : nil
+        self.maxHeartRate = hasHeartRateData ? NSMeasurement(doubleValue: Double(workout.hasHeartRateData.description)!, unit: UnitCount.count) : nil
+        
         if hasRouteSamples {
             
             self.ascendingAltitude = NSMeasurement(doubleValue: workout.ascendingAltitude.value, unit: UnitLength.meters)
@@ -111,7 +118,6 @@ class WorkoutStats {
             self.topSpeed = nil
             
         }
-        
     }
     
     var lastQueriedAltitudeSeries: (Bool, WorkoutStatsSeries?)?

@@ -99,6 +99,7 @@ class WorkoutViewController: DetailViewController {
                 }
                 
                 let distanceStatsView = DistanceStatsView(stats: stats)
+                let heartRateStatsView = HeartRateStatsView(stats: stats)
                 let timeStatsView = TimeStatsView(stats: stats)
                 let speedStatsView = SpeedStatsView(stats: stats)
                 let energyStatsView = EnergyStatsView(stats: stats)
@@ -134,6 +135,7 @@ class WorkoutViewController: DetailViewController {
                 }
                 
                 self.contentView.addSubview(distanceStatsView)
+                self.contentView.addSubview(heartRateStatsView)
                 self.contentView.addSubview(timeStatsView)
                 self.contentView.addSubview(speedStatsView)
                 self.contentView.addSubview(editView)
@@ -143,9 +145,13 @@ class WorkoutViewController: DetailViewController {
                     make.left.right.top.equalToSuperview()
                     make.width.equalToSuperview()
                 }
-                timeStatsView.snp.makeConstraints { (make) in
+                heartRateStatsView.snp.makeConstraints({ (make) in
                     make.left.right.equalToSuperview()
                     make.top.equalTo(distanceStatsView.snp.bottom).offset(20)
+                })
+                timeStatsView.snp.makeConstraints { (make) in
+                    make.left.right.equalToSuperview()
+                    make.top.equalTo(heartRateStatsView.snp.bottom).offset(20)
                 }
                 speedStatsView.snp.makeConstraints { (make) in
                     make.left.right.equalToSuperview()
